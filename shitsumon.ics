@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//mikata//JP
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:shitsumon-2026-11-18@sanka
+DTSTAMP:20261113T045133Z
+DTSTART:20261118T100000Z
+DTEND:20261118T113000Z
+SUMMARY:19-勉強会(質問力を鍛えよう)
+LOCATION:オンライン（参加URLはオープンチャットでお知らせします）
+DESCRIPTION:ポリクリ直前企画！家庭医療勉強会「ポリクリに向けて質問力を鍛えよう」\n2026年11月18日（水）19:00〜20:30（希望者は終了後30分ほど自由に質問できます）\nオンライン（参加URLはオープンチャットでお知らせします）\n連絡先：家庭医療べんきょう会（山口大学医学部） kateiiryoyamaguchi24+event@gmail.com
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:明日はポリクリに向けて質問力を鍛えよう
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT2H
+ACTION:DISPLAY
+DESCRIPTION:ポリクリに向けて質問力を鍛えよう（19:00 開始）
+END:VALARM
+END:VEVENT
+END:VCALENDAR

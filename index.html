@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ポリクリに向けて質問力を鍛えよう｜参加登録</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #1f2a33; --ai: #2b4f8f; --paper: #fbf9f6; --line: #d6dde8; --soft: #e6edf8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.6; }
+  main { max-width: 460px; margin: 0 auto; padding: 24px 16px 40px; }
+  .kicker { color: var(--ai); font-weight: 700; font-size: 14px; letter-spacing: .04em; }
+  h1 { font-family: 'Klee One', serif; font-weight: 600; color: var(--ai); font-size: 34px; line-height: 1.25; margin: 4px 0 12px; }
+  .meta { font-size: 15px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 10px 0; margin-bottom: 20px; }
+  .meta b { color: var(--ai); font-size: 20px; }
+  label.q, .q { display: block; font-weight: 700; margin: 18px 0 8px; }
+  .q small { font-weight: 500; color: #4f6275; }
+  .req { color: #b3261e; font-size: 13px; margin-left: 4px; }
+  input[type=text] { width: 100%; min-height: 50px; padding: 10px 12px; font: inherit; font-size: 17px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); }
+  input[type=text]:focus { outline: 2px solid var(--ai); border-color: var(--ai); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  button, .btn { display: block; width: 100%; min-height: 50px; padding: 10px; font: inherit; font-weight: 700; font-size: 15px; color: var(--ink); background: #fff; border: 1.5px solid var(--line); border-radius: 12px; text-align: center; text-decoration: none; cursor: pointer; }
+  .opt[aria-pressed=true] { background: var(--ai); border-color: var(--ai); color: #fff; }
+  .wide { grid-column: 1 / -1; }
+  .primary { background: var(--ai); color: #fff; border-color: var(--ai); }
+  .big { margin-top: 24px; min-height: 64px; font-size: 21px; letter-spacing: .1em; border-radius: 16px; }
+  .big:disabled { background: #9aaccc; border-color: #9aaccc; cursor: default; }
+  .stack { display: grid; gap: 10px; }
+  .done { font-size: 22px; font-weight: 700; color: var(--ai); margin: 0 0 4px; }
+  .note { font-size: 14px; color: #3d4b58; }
+  .chosen { background: var(--soft); border-radius: 10px; padding: 10px 12px; margin: 12px 0 18px; font-size: 15px; }
+  .link { margin-top: 14px; background: none; border: 0; min-height: 0; color: var(--ai); font-size: 14px; text-decoration: underline; font-weight: 500; }
+  #s-done a:not(.btn) { color: var(--ai); font-weight: 700; }
+  #openchat { display: flex; align-items: center; justify-content: center; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div id="testBar" hidden style="background:#b3261e;color:#fff;font-weight:700;text-align:center;padding:8px;border-radius:10px;margin-bottom:14px">テスト中（本番の名簿には入りません）</div>
+  <div class="kicker" id="kicker"></div>
+  <h1 id="title"></h1>
+  <div class="meta"><b>11.18（水）19:00〜20:30</b><br><span id="place"></span></div>
+
+  <section id="s-join">
+    <label class="q" for="name">お名前（ひらがな）<span class="req">必須</span> <small>名札に使います</small></label>
+    <input type="text" id="name" autocomplete="name" maxlength="40" placeholder="例）やまぐち はなこ">
+    <p class="note" id="nameErr" hidden style="color:#b3261e;margin:6px 0 0">ひらがなで入力してください</p>
+
+    <div class="q" id="gradeLabel">学年・職種<span class="req">必須</span></div>
+    <div class="grid" id="grades" role="group" aria-labelledby="gradeLabel"></div>
+
+    <div class="q" id="partyLabel">懇親会への興味<span class="req">必須</span> <small id="partyNote"></small></div>
+    <div class="grid" id="parties" role="group" aria-labelledby="partyLabel"></div>
+
+    <label class="q" for="org">所属 <small>山口大学以外の方のみ</small></label>
+    <input type="text" id="org" autocomplete="organization" maxlength="60" placeholder="例）○○大学 医学部">
+
+    <button class="primary big" id="join" disabled>参加する</button>
+    <p class="note" id="hint" style="text-align:center;margin-top:8px">お名前（ひらがな）・学年・懇親会への興味を選ぶと押せます</p>
+  </section>
+
+  <section id="s-done" hidden>
+    <p class="note" id="count" style="margin:0"></p>
+    <p class="done" id="doneTitle">あと1ステップ：<br>オープンチャットへ参加</p>
+    <p class="note" id="ocNote"></p>
+    <a class="btn primary big" id="openchat" target="_blank" rel="noopener">オープンチャットに入る</a>
+    <div class="chosen" id="chosen"></div>
+    <p class="note" style="margin:0">予定にも入れておく：<a id="gcal" target="_blank" rel="noopener">Googleカレンダー</a> ／ <a id="ics" target="_blank" rel="noopener">iPhoneのカレンダー</a></p>
+    <button class="link" id="edit">登録内容を直す</button>
+  </section>
+
+  <section id="s-closed" hidden>
+    <p class="done" id="closedMsg"></p>
+    <p class="note">お問い合わせは下の連絡先へお願いします。</p>
+  </section>
+
+  <p class="note" style="margin-top:28px;font-size:13px">入力いただいた内容は、<span id="use"></span>にだけ使い、運営以外には公開しません。<br>連絡先：<span id="contact"></span></p>
+</main>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbz-fFbHwArbB-slsCnUmn_dktMxpFEVXDLZYT9w5veXYvVD1AUoVGaCCj_LkN7Kf6g6_A/exec';
+const CFG = Object.assign({"TITLE":"ポリクリに向けて質問力を鍛えよう","KICKER":"ポリクリ直前企画！家庭医療勉強会","PLACE":"オンライン（参加URLはオープンチャットでお知らせします）","CONTACT":"家庭医療べんきょう会（山口大学医学部） kateiiryoyamaguchi24+event@gmail.com","OPENCHAT_URL":"","GCAL_URL":"https://calendar.google.com/calendar/render?action=TEMPLATE&text=19-%E5%8B%89%E5%BC%B7%E4%BC%9A(%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%82%92%E9%8D%9B%E3%81%88%E3%82%88%E3%81%86)&dates=20261118T100000Z%2F20261118T113000Z&location=%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3%EF%BC%88%E5%8F%82%E5%8A%A0URL%E3%81%AF%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%83%81%E3%83%A3%E3%83%83%E3%83%88%E3%81%A7%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B%E3%81%97%E3%81%BE%E3%81%99%EF%BC%89&details=%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E7%9B%B4%E5%89%8D%E4%BC%81%E7%94%BB%EF%BC%81%E5%AE%B6%E5%BA%AD%E5%8C%BB%E7%99%82%E5%8B%89%E5%BC%B7%E4%BC%9A%E3%80%8C%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E3%81%AB%E5%90%91%E3%81%91%E3%81%A6%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%82%92%E9%8D%9B%E3%81%88%E3%82%88%E3%81%86%E3%80%8D%0A2026%E5%B9%B411%E6%9C%8818%E6%97%A5%EF%BC%88%E6%B0%B4%EF%BC%8919%3A00%E3%80%9C20%3A30%EF%BC%88%E5%B8%8C%E6%9C%9B%E8%80%85%E3%81%AF%E7%B5%82%E4%BA%86%E5%BE%8C30%E5%88%86%E3%81%BB%E3%81%A9%E8%87%AA%E7%94%B1%E3%81%AB%E8%B3%AA%E5%95%8F%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%99%EF%BC%89%0A%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3%EF%BC%88%E5%8F%82%E5%8A%A0URL%E3%81%AF%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%83%81%E3%83%A3%E3%83%83%E3%83%88%E3%81%A7%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B%E3%81%97%E3%81%BE%E3%81%99%EF%BC%89%0A%E9%80%A3%E7%B5%A1%E5%85%88%EF%BC%9A%E5%AE%B6%E5%BA%AD%E5%8C%BB%E7%99%82%E3%81%B9%E3%82%93%E3%81%8D%E3%82%87%E3%81%86%E4%BC%9A%EF%BC%88%E5%B1%B1%E5%8F%A3%E5%A4%A7%E5%AD%A6%E5%8C%BB%E5%AD%A6%E9%83%A8%EF%BC%89%20kateiiryoyamaguchi24%2Bevent%40gmail.com&ctz=Asia%2FTokyo","ICS_URL":"shitsumon.ics","GRADES":["医学部 1〜2年生","医学部 3年生","医学部 4年生","医学部 5年生","医学部 6年生","研修医","専攻医・医師","その他"],"PARTY":[],"PARTY_NOTE":"","OC_NOTE":"参加URLと前日・当日のお知らせは、ここだけでお届けします。"}, { TEST: new URLSearchParams(location.search).get('test') === '1' });
+// Googleの名簿へ送る（画面はGitHub Pages、記録はGoogle）
+const run = () => {
+  const h = {};
+  const call = p => p.then(r => r.json()).then(j => { if (j.error) throw new Error(j.error); h.s(j); }).catch(e => h.f && h.f(e));
+  const o = {
+    withSuccessHandler(f) { h.s = f; return o; },
+    withFailureHandler(f) { h.f = f; return o; },
+    status(test, id) { call(fetch(API + '?api=status' + (test ? '&test=1' : '') + '&id=' + encodeURIComponent(id || ''))); },
+    submit(id, name, grade, party, org, test) { call(fetch(API, { method: 'POST', body: JSON.stringify({ id, name, grade, party, org, test }) })); },
+  };
+  return o;
+};
+const $ = id => document.getElementById(id);
+const show = id => ['s-join', 's-done', 's-closed'].forEach(s => $(s).hidden = s !== id);
+const pick = { grade: '', party: '' };
+const HAS_PARTY = CFG.PARTY.length > 0;   // 懇親会なし（オンライン開催など）なら質問ごと出さない
+
+function store(k, v) { if (CFG.TEST) k += '-test'; try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+function getId() {
+  let id = store('shitsumonId');
+  if (!/^[a-z0-9]{8,40}$/.test(id || '')) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); store('shitsumonId', id); }
+  return id;
+}
+const kana = s => s.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60)).replace(/[\s\u3000]+/g, ' ').trim();
+const isKana = s => /^[\u3041-\u3096\u309d\u309e\u30fc\u30fb ]+$/.test(s);
+function ready() {
+  const n = kana($('name').value);
+  $('nameErr').hidden = !n || isKana(n);
+  const ok = isKana(n) && pick.grade && (pick.party || !HAS_PARTY);
+  $('join').disabled = !ok;
+  $('hint').hidden = !!ok;
+  $('hint').textContent = HAS_PARTY ? 'お名前（ひらがな）・学年・懇親会への興味を選ぶと押せます' : 'お名前（ひらがな）と学年を選ぶと押せます';
+}
+function options(box, list, key) {
+  list.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'opt' + (v === 'その他' ? ' wide' : '');
+    b.textContent = v;
+    b.setAttribute('aria-pressed', 'false');
+    b.onclick = () => {
+      pick[key] = v;
+      box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      ready();
+    };
+    box.appendChild(b);
+  });
+}
+function done(r, d) {
+  $('count').textContent = '登録を受け付けました（いま ' + r.count + ' 人が参加予定）';
+  $('chosen').textContent = d.name + '　／　' + d.grade + (HAS_PARTY ? '　／　懇親会：' + d.party : '') + (d.org ? '　／　' + d.org : '');
+  show('s-done');
+}
+function closed(r) {
+  $('closedMsg').textContent = r.full ? '定員に達したため受付を締め切りました' : '受付は終了しました';
+  show('s-closed');
+}
+
+$('testBar').hidden = !CFG.TEST;
+$('kicker').textContent = CFG.KICKER;
+$('title').textContent = CFG.TITLE;
+$('place').textContent = CFG.PLACE;
+$('contact').textContent = CFG.CONTACT;
+$('partyNote').textContent = CFG.PARTY_NOTE || '';
+$('partyLabel').hidden = $('parties').hidden = !HAS_PARTY;
+$('ocNote').textContent = (CFG.OC_NOTE || '') + '名前は本名でなくてOK、終了1週間後に部屋は削除します。';
+$('use').textContent = '受付・名札・グループ分け' + (HAS_PARTY ? '・懇親会の予約' : '');
+$('gcal').href = CFG.GCAL_URL;
+$('ics').href = CFG.ICS_URL;
+if (CFG.OPENCHAT_URL) $('openchat').href = CFG.OPENCHAT_URL;
+else { $('openchat').hidden = $('ocNote').hidden = true; $('doneTitle').textContent = '参加登録が完了しました'; }
+options($('grades'), CFG.GRADES, 'grade');
+options($('parties'), CFG.PARTY, 'party');
+$('name').oninput = ready;
+$('name').onblur = () => { const n = kana($('name').value); if (isKana(n)) $('name').value = n; ready(); };
+
+$('join').onclick = () => {
+  const d = { name: kana($('name').value), grade: pick.grade, party: pick.party, org: $('org').value.trim() };
+  const b = $('join');
+  b.disabled = true; b.textContent = '送信中…';
+  run().withSuccessHandler(r => {
+    b.textContent = '参加する'; ready();
+    if (!r.ok) return closed(r);
+    store('shitsumonData', d);
+    done(r, d);
+  }).withFailureHandler(() => {
+    b.textContent = '参加する'; ready();
+    alert('送れませんでした。通信状態を確かめて、もう一度押してください。');
+  }).submit(getId(), d.name, d.grade, d.party, d.org, !!CFG.TEST);
+};
+$('edit').onclick = () => {
+  const d = store('shitsumonData');
+  if (d) {
+    $('name').value = d.name; $('org').value = d.org || '';
+    [['grades', d.grade, 'grade'], ['parties', d.party, 'party']].forEach(([box, v, k]) => {
+      pick[k] = v;
+      $(box).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.textContent === v)));
+    });
+  }
+  ready(); show('s-join');
+};
+
+run().withSuccessHandler(r => {
+  const d = store('shitsumonData');
+  if (d && r.mine) return done(r, d);
+  if (d) { store('shitsumonData', null); $('name').value = d.name; }   // 名簿から消えていたら入力画面へ（名前だけ残す）
+  if (r.closed || r.full) closed(r);
+}).status(!!CFG.TEST, getId());
+</script>
+</body>
+</html>
