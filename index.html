@@ -35,7 +35,10 @@
   .chosen { background: var(--soft); border-radius: 10px; padding: 10px 12px; margin: 12px 0 18px; font-size: 15px; }
   .link { margin-top: 14px; background: none; border: 0; min-height: 0; color: var(--ai); font-size: 14px; text-decoration: underline; font-weight: 500; }
   #s-done a:not(.btn) { color: var(--ai); font-weight: 700; }
-  #openchat { display: flex; align-items: center; justify-content: center; }
+  #openchat, #joinOc { display: flex; align-items: center; justify-content: center; }
+  .oc { background: #06c755; border-color: #06c755; color: #fff; }   /* LINEの緑 */
+  .oc[aria-disabled=true] { background: #a8dcbc; border-color: #a8dcbc; }
+  #joinOc { font-size: 18px; letter-spacing: .02em; white-space: nowrap; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -61,6 +64,8 @@
     <input type="text" id="org" autocomplete="organization" maxlength="60" placeholder="例）○○大学 医学部">
 
     <button class="primary big" id="join" disabled>参加する</button>
+    <a class="btn big oc" id="joinOc" hidden aria-disabled="true">参加してオープンチャットに入る</a>
+    <p class="note" id="joinErr" hidden style="color:#b3261e;font-weight:700;text-align:center;margin:8px 0 0">登録が完了していませんでした。通信状態を確かめて、もう一度押してください。</p>
     <p class="note" id="hint" style="text-align:center;margin-top:8px">お名前（ひらがな）・学年・懇親会への興味を選ぶと押せます</p>
   </section>
 
@@ -68,7 +73,7 @@
     <p class="note" id="count" style="margin:0"></p>
     <p class="done" id="doneTitle">あと1ステップ：<br>オープンチャットへ参加</p>
     <p class="note" id="ocNote"></p>
-    <a class="btn primary big" id="openchat" target="_blank" rel="noopener">オープンチャットに入る</a>
+    <a class="btn oc big" id="openchat">オープンチャットに入る</a>
     <div class="chosen" id="chosen"></div>
     <p class="note" style="margin:0">予定にも入れておく：<span id="ttWrap" hidden><a id="tt" target="_blank" rel="noopener">TimeTree</a> ／ </span><a id="gcal" target="_blank" rel="noopener">Googleカレンダー</a> ／ <a id="ics" target="_blank" rel="noopener">iPhoneのカレンダー</a></p>
     <button class="link" id="edit">登録内容を直す</button>
@@ -84,7 +89,7 @@
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbz-fFbHwArbB-slsCnUmn_dktMxpFEVXDLZYT9w5veXYvVD1AUoVGaCCj_LkN7Kf6g6_A/exec';
-const CFG = Object.assign({"TITLE":"ポリクリに向けて 質問力を鍛えよう","KICKER":"ポリクリ直前企画！家庭医療勉強会","PLACE":"オンライン開催","CONTACT":"家庭医療べんきょう会（山口大学医学部） kateiiryoyamaguchi24+event@gmail.com","OPENCHAT_URL":"https://line.me/ti/g2/394VUGDUIKnnXLYqHz1jHxyysdBIcB7PAliWsw","GCAL_URL":"https://calendar.google.com/calendar/render?action=TEMPLATE&text=19-%E5%8B%89%E5%BC%B7%E4%BC%9A(%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%82%92%E9%8D%9B%E3%81%88%E3%82%88%E3%81%86)&dates=20261118T100000Z%2F20261118T113000Z&location=%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3%E9%96%8B%E5%82%AC&details=%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E7%9B%B4%E5%89%8D%E4%BC%81%E7%94%BB%EF%BC%81%E5%AE%B6%E5%BA%AD%E5%8C%BB%E7%99%82%E5%8B%89%E5%BC%B7%E4%BC%9A%E3%80%8C%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E3%81%AB%E5%90%91%E3%81%91%E3%81%A6%20%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%82%92%E9%8D%9B%E3%81%88%E3%82%88%E3%81%86%E3%80%8D%0A2026%E5%B9%B411%E6%9C%8818%E6%97%A5%EF%BC%88%E6%B0%B4%EF%BC%8919%3A00%E3%80%9C20%3A30%EF%BC%88%E5%B8%8C%E6%9C%9B%E8%80%85%E3%81%AF%E7%B5%82%E4%BA%86%E5%BE%8C30%E5%88%86%E3%81%BB%E3%81%A9%E8%87%AA%E7%94%B1%E3%81%AB%E8%B3%AA%E5%95%8F%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%99%EF%BC%89%0A%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3%E9%96%8B%E5%82%AC%0A%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B%EF%BC%88%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%83%81%E3%83%A3%E3%83%83%E3%83%88%E3%80%8C11%2F18%20%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%80%8D%EF%BC%89%EF%BC%9Ahttps%3A%2F%2Fline.me%2Fti%2Fg2%2F394VUGDUIKnnXLYqHz1jHxyysdBIcB7PAliWsw%0A%E9%80%A3%E7%B5%A1%E5%85%88%EF%BC%9A%E5%AE%B6%E5%BA%AD%E5%8C%BB%E7%99%82%E3%81%B9%E3%82%93%E3%81%8D%E3%82%87%E3%81%86%E4%BC%9A%EF%BC%88%E5%B1%B1%E5%8F%A3%E5%A4%A7%E5%AD%A6%E5%8C%BB%E5%AD%A6%E9%83%A8%EF%BC%89%20kateiiryoyamaguchi24%2Bevent%40gmail.com&ctz=Asia%2FTokyo","ICS_URL":"shitsumon.ics","GRADES":["医学部 1〜2年生","医学部 3年生","医学部 4年生","医学部 5年生","医学部 6年生","研修医","専攻医・医師","その他"],"PARTY":[],"PARTY_NOTE":"","OC_NOTE":"参加URLと前日・当日のお知らせは、ここだけでお届けします。","TIMETREE_URL":"https://timetreeapp.com/public_calendars/kateiiryo_yamaguchi/events/3098588093915759301"}, { TEST: new URLSearchParams(location.search).get('test') === '1' });
+const CFG = Object.assign({"TITLE":"ポリクリに向けて 質問力を鍛えよう","KICKER":"ポリクリ直前企画！家庭医療勉強会","PLACE":"オンライン開催","CONTACT":"家庭医療べんきょう会（山口大学医学部） kateiiryoyamaguchi24+event@gmail.com","OPENCHAT_URL":"https://line.me/ti/g2/394VUGDUIKnnXLYqHz1jHxyysdBIcB7PAliWsw","GCAL_URL":"https://calendar.google.com/calendar/render?action=TEMPLATE&text=19-%E5%8B%89%E5%BC%B7%E4%BC%9A(%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%82%92%E9%8D%9B%E3%81%88%E3%82%88%E3%81%86)&dates=20261118T100000Z%2F20261118T113000Z&location=%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3%E9%96%8B%E5%82%AC&details=%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E7%9B%B4%E5%89%8D%E4%BC%81%E7%94%BB%EF%BC%81%E5%AE%B6%E5%BA%AD%E5%8C%BB%E7%99%82%E5%8B%89%E5%BC%B7%E4%BC%9A%E3%80%8C%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E3%81%AB%E5%90%91%E3%81%91%E3%81%A6%20%E8%B3%AA%E5%95%8F%E5%8A%9B%E3%82%92%E9%8D%9B%E3%81%88%E3%82%88%E3%81%86%E3%80%8D%0A2026%E5%B9%B411%E6%9C%8818%E6%97%A5%EF%BC%88%E6%B0%B4%EF%BC%8919%3A00%E3%80%9C20%3A30%EF%BC%88%E5%B8%8C%E6%9C%9B%E8%80%85%E3%81%AF%E7%B5%82%E4%BA%86%E5%BE%8C30%E5%88%86%E3%81%BB%E3%81%A9%E8%87%AA%E7%94%B1%E3%81%AB%E8%B3%AA%E5%95%8F%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%99%EF%BC%89%0A%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3%E9%96%8B%E5%82%AC%0A%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B%EF%BC%88%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%83%81%E3%83%A3%E3%83%83%E3%83%88%E3%80%8C11%2F18%20%E3%83%9D%E3%83%AA%E3%82%AF%E3%83%AA%E5%8B%89%E5%BC%B7%E4%BC%9A%E3%80%8D%EF%BC%89%EF%BC%9Ahttps%3A%2F%2Fline.me%2Fti%2Fg2%2F394VUGDUIKnnXLYqHz1jHxyysdBIcB7PAliWsw%0A%E9%80%A3%E7%B5%A1%E5%85%88%EF%BC%9A%E5%AE%B6%E5%BA%AD%E5%8C%BB%E7%99%82%E3%81%B9%E3%82%93%E3%81%8D%E3%82%87%E3%81%86%E4%BC%9A%EF%BC%88%E5%B1%B1%E5%8F%A3%E5%A4%A7%E5%AD%A6%E5%8C%BB%E5%AD%A6%E9%83%A8%EF%BC%89%20kateiiryoyamaguchi24%2Bevent%40gmail.com&ctz=Asia%2FTokyo","ICS_URL":"shitsumon.ics","GRADES":["医学部 1〜2年生","医学部 3年生","医学部 4年生","医学部 5年生","医学部 6年生","研修医","専攻医・医師","その他"],"PARTY":[],"PARTY_NOTE":"","OC_NOTE":"参加URLと前日・当日のお知らせは、ここだけでお届けします。","TIMETREE_URL":"https://timetreeapp.com/public_calendars/kateiiryo_yamaguchi/events/3098588093915759301"}, { TEST: new URLSearchParams(location.search).get('test') === '1' });
 // Googleの名簿へ送る（画面はGitHub Pages、記録はGoogle）
 const run = () => {
   const h = {};
@@ -100,6 +105,9 @@ const run = () => {
 const $ = id => document.getElementById(id);
 const show = id => ['s-join', 's-done', 's-closed'].forEach(s => $(s).hidden = s !== id);
 const pick = { grade: '', party: '' };
+let editing = false;   // 「登録内容を直す」から送るときは、オプチャへは飛ばさない
+// ワンタッチ：「参加してオープンチャットに入る」を押すと、登録を裏で送りながら、そのままLINEのオプチャを開く（2026-11-16 本人「Enter押すところでオプチャへの遷移までワンタッチで」）
+const oneTap = () => !!CFG.OPENCHAT_URL && !editing;
 const HAS_PARTY = CFG.PARTY.length > 0;   // 懇親会なし（オンライン開催など）なら質問ごと出さない
 
 function store(k, v) { if (CFG.TEST) k += '-test'; try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
@@ -115,8 +123,11 @@ function ready() {
   $('nameErr').hidden = !n || isKana(n);
   const ok = isKana(n) && pick.grade && (pick.party || !HAS_PARTY);
   $('join').disabled = !ok;
-  $('hint').hidden = !!ok;
-  $('hint').textContent = HAS_PARTY ? 'お名前（ひらがな）・学年・懇親会への興味を選ぶと押せます' : 'お名前（ひらがな）と学年を選ぶと押せます';
+  $('joinOc').setAttribute('aria-disabled', String(!ok));
+  $('join').hidden = oneTap(); $('joinOc').hidden = !oneTap();
+  const need = HAS_PARTY ? 'お名前（ひらがな）・学年・懇親会への興味を選ぶと押せます' : 'お名前（ひらがな）と学年を選ぶと押せます';
+  $('hint').hidden = !!ok && !oneTap();
+  $('hint').textContent = ok ? '押すとLINEのオープンチャットが開きます（名前は本名でなくてOK）' : need;
 }
 function options(box, list, key) {
   list.forEach(v => {
@@ -133,7 +144,7 @@ function options(box, list, key) {
   });
 }
 function done(r, d) {
-  $('count').textContent = '登録を受け付けました（いま ' + r.count + ' 人が参加予定）';
+  $('count').textContent = r.count == null ? '登録を受け付けました' : '登録を受け付けました（いま ' + r.count + ' 人が参加予定）';
   $('chosen').textContent = d.name + '　／　' + d.grade + (HAS_PARTY ? '　／　懇親会：' + d.party : '') + (d.org ? '　／　' + d.org : '');
   show('s-done');
 }
@@ -155,10 +166,15 @@ $('use').textContent = '受付・名札・グループ分け' + (HAS_PARTY ? '�
 $('gcal').href = CFG.GCAL_URL;
 $('ics').href = CFG.ICS_URL;
 if (CFG.TIMETREE_URL) { $('tt').href = CFG.TIMETREE_URL; $('ttWrap').hidden = false; }   // 学生はTimeTreeが圧倒的多数（2026-11-13 本人調べ）
-if (CFG.OPENCHAT_URL) $('openchat').href = CFG.OPENCHAT_URL;
+if (CFG.OPENCHAT_URL) {
+  $('openchat').href = $('joinOc').href = CFG.OPENCHAT_URL;
+  $('doneTitle').textContent = '参加登録できました！';
+  $('ocNote').textContent = 'オープンチャットが開かなかった方・まだ入っていない方は、下のボタンから。' + $('ocNote').textContent;
+}
 else { $('openchat').hidden = $('ocNote').hidden = true; $('doneTitle').textContent = '参加登録が完了しました'; }
 options($('grades'), CFG.GRADES, 'grade');
 options($('parties'), CFG.PARTY, 'party');
+ready();
 $('name').oninput = ready;
 $('name').onblur = () => { const n = kana($('name').value); if (isKana(n)) $('name').value = n; ready(); };
 
@@ -170,13 +186,42 @@ $('join').onclick = () => {
     b.textContent = '参加する'; ready();
     if (!r.ok) return closed(r);
     store('shitsumonData', d);
+    editing = false;
     done(r, d);
   }).withFailureHandler(() => {
     b.textContent = '参加する'; ready();
     alert('送れませんでした。通信状態を確かめて、もう一度押してください。');
   }).submit(getId(), d.name, d.grade, d.party, d.org, !!CFG.TEST);
 };
+// ワンタッチ：本物のリンクを押させる（送信を待ってから開くと、iPhoneがLINEアプリへ渡さないことがある）
+$('joinOc').onclick = e => {
+  if ($('joinOc').getAttribute('aria-disabled') === 'true') { e.preventDefault(); ready(); return; }
+  const d = { name: kana($('name').value), grade: pick.grade, party: pick.party, org: $('org').value.trim() };
+  $('joinErr').hidden = true;
+  store('shitsumonData', d);
+  fetch(API, { method: 'POST', keepalive: true, body: JSON.stringify(Object.assign({ id: getId(), test: !!CFG.TEST }, d)) })
+    .then(r => r.json()).then(r => { if (r.ok) done(r, d); else if (r.closed || r.full) { store('shitsumonData', null); closed(r); } }).catch(() => {});
+  done({ count: null }, d);   // 戻ってきたときは完了画面（名簿に入ったかは戻ったときに確かめる）
+};
+// LINEから戻ってきたら、本当に名簿に入ったかを確かめる。入っていなければ入力画面に戻して知らせる
+function verify(tries) {
+  const d = store('shitsumonData');
+  if (!d || $('s-done').hidden) return;
+  run().withSuccessHandler(r => {
+    if (r.mine) return done(r, d);
+    if (tries > 1) return setTimeout(() => verify(tries - 1), 3000);
+    store('shitsumonData', null);
+    $('name').value = d.name; $('org').value = d.org || '';
+    [['grades', d.grade, 'grade'], ['parties', d.party, 'party']].forEach(([box, v, k]) => {
+      pick[k] = v; $(box).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.textContent === v)));
+    });
+    ready(); show('s-join'); $('joinErr').hidden = false;
+  }).status(!!CFG.TEST, getId());
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') verify(3); });
+addEventListener('pageshow', e => { if (e.persisted) verify(3); });
 $('edit').onclick = () => {
+  editing = true;
   const d = store('shitsumonData');
   if (d) {
     $('name').value = d.name; $('org').value = d.org || '';
