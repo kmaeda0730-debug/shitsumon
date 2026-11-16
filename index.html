@@ -39,6 +39,10 @@
   .oc { background: #06c755; border-color: #06c755; color: #fff; }   /* LINEの緑 */
   .oc[aria-disabled=true] { background: #a8dcbc; border-color: #a8dcbc; }
   #joinOc { font-size: 18px; letter-spacing: .02em; white-space: nowrap; }
+  .cal { margin-top: 18px; }
+  .cal .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cal a { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 6px; font-weight: 700; font-size: 14px; color: var(--ink); background: #fff; border: 1.5px solid var(--line); border-radius: 12px; text-decoration: none; text-align: center; line-height: 1.3; }
+  .cal a.tt { border-color: #2ec27e; color: #128a52; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -67,7 +71,8 @@
     <a class="btn big oc" id="joinOc" hidden aria-disabled="true">参加してオープンチャットに入る</a>
     <p class="note" id="joinErr" hidden style="color:#b3261e;font-weight:700;text-align:center;margin:8px 0 0">登録が完了していませんでした。通信状態を確かめて、もう一度押してください。</p>
     <p class="note" id="hint" style="text-align:center;margin-top:8px">お名前（ひらがな）・学年・懇親会への興味を選ぶと押せます</p>
-  </section>
+
+    <div class="cal" id="calJoin"><div class="q" style="margin:0 0 8px">予定に入れておく</div><div class="row"></div></div>  </section>
 
   <section id="s-done" hidden>
     <p class="note" id="count" style="margin:0"></p>
@@ -75,7 +80,7 @@
     <p class="note" id="ocNote"></p>
     <a class="btn oc big" id="openchat">オープンチャットに入る</a>
     <div class="chosen" id="chosen"></div>
-    <p class="note" style="margin:0">予定にも入れておく：<span id="ttWrap" hidden><a id="tt" target="_blank" rel="noopener">TimeTree</a> ／ </span><a id="gcal" target="_blank" rel="noopener">Googleカレンダー</a> ／ <a id="ics" target="_blank" rel="noopener">iPhoneのカレンダー</a></p>
+    <div class="cal" id="calDone"><div class="q" style="margin:0 0 8px">予定に入れておく</div><div class="row"></div></div>
     <button class="link" id="edit">登録内容を直す</button>
   </section>
 
@@ -165,9 +170,17 @@ $('partyNote').textContent = CFG.PARTY_NOTE || '';
 $('partyLabel').hidden = $('parties').hidden = !HAS_PARTY;
 $('ocNote').textContent = (CFG.OC_NOTE || '') + '名前は本名でなくてOK、終了1週間後に部屋は削除します。';
 $('use').textContent = '受付・名札・グループ分け' + (HAS_PARTY ? '・懇親会の予約' : '');
-$('gcal').href = CFG.GCAL_URL;
-$('ics').href = CFG.ICS_URL;
-if (CFG.TIMETREE_URL) { $('tt').href = CFG.TIMETREE_URL; $('ttWrap').hidden = false; }   // 学生はTimeTreeが圧倒的多数（2026-11-13 本人調べ）
+// カレンダーのボタンは入力画面（参加ボタンの下）と完了画面の両方に出す。ワンタッチでLINEへ移ると完了画面を見ない人がいるため（2026-11-16 本人指摘）
+// TimeTreeを先頭に（学生はTimeTreeが圧倒的多数。2026-11-13 本人調べ）
+['calJoin', 'calDone'].forEach(id => {
+  const row = $(id).querySelector('.row');
+  [[CFG.TIMETREE_URL, 'TimeTree', 'tt'], [CFG.GCAL_URL, 'Google<br>カレンダー', ''], [CFG.ICS_URL, 'iPhoneの<br>カレンダー', '']].forEach(([href, label, cls]) => {
+    if (!href) return;
+    const a = document.createElement('a'); a.href = href; a.innerHTML = label; a.className = cls; a.target = '_blank'; a.rel = 'noopener';
+    row.appendChild(a);
+  });
+  row.style.gridTemplateColumns = 'repeat(' + row.children.length + ', 1fr)';
+});
 if (CFG.OPENCHAT_URL) {
   $('openchat').href = $('joinOc').href = CFG.OPENCHAT_URL;
   $('doneTitle').textContent = '参加登録できました！';
