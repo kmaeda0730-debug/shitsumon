@@ -172,11 +172,15 @@ $('ocNote').textContent = (CFG.OC_NOTE || '') + '名前は本名でなくてOK�
 $('use').textContent = '受付・名札・グループ分け' + (HAS_PARTY ? '・懇親会の予約' : '');
 // カレンダーのボタンは入力画面（参加ボタンの下）と完了画面の両方に出す。ワンタッチでLINEへ移ると完了画面を見ない人がいるため（2026-11-16 本人指摘）
 // TimeTreeを先頭に（学生はTimeTreeが圧倒的多数。2026-11-13 本人調べ）
+// LINEの中のブラウザでは .ics（iPhoneのカレンダー）が開けない。LINEは URL末尾の openExternalBrowser=1 でSafariに渡すので、LINEの中ではカレンダーのリンクにそれを付ける（2026-11-17 本人「Safariに遷移させないとiPhoneのカレンダーに登録できない」）
+// テスト入口では ?line=1 でLINEの中のつもりで確かめられる
+const IN_LINE = /\bLine\//i.test(navigator.userAgent) || (CFG.TEST && new URLSearchParams(location.search).get('line') === '1');
+const ext = u => { if (!IN_LINE || !u) return u; const x = new URL(u, location.href); x.searchParams.set('openExternalBrowser', '1'); return x.href; };
 ['calJoin', 'calDone'].forEach(id => {
   const row = $(id).querySelector('.row');
   [[CFG.TIMETREE_URL, 'TimeTree', 'tt'], [CFG.GCAL_URL, 'Google<br>カレンダー', ''], [CFG.ICS_URL, 'iPhoneの<br>カレンダー', '']].forEach(([href, label, cls]) => {
     if (!href) return;
-    const a = document.createElement('a'); a.href = href; a.innerHTML = label; a.className = cls; a.target = '_blank'; a.rel = 'noopener';
+    const a = document.createElement('a'); a.href = ext(href); a.innerHTML = label; a.className = cls; a.target = '_blank'; a.rel = 'noopener';
     row.appendChild(a);
   });
   row.style.gridTemplateColumns = 'repeat(' + row.children.length + ', 1fr)';
